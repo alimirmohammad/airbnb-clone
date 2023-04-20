@@ -1,11 +1,15 @@
 import prisma from '@/app/libs/prismadb';
+import { SafeListing } from '../types';
 
-export default async function getListings() {
+export default async function getListings(): Promise<SafeListing[]> {
   const listings = await prisma.listing.findMany({
     orderBy: {
       createdAt: 'desc',
     },
   });
 
-  return listings;
+  return listings.map(listing => ({
+    ...listing,
+    createdAt: listing.createdAt.toISOString(),
+  }));
 }
