@@ -3,9 +3,47 @@
 import { BiSearch } from 'react-icons/bi';
 
 import useSearchModal from '@/app/hooks/useSearchModal';
+import { useSearchParams } from 'next/navigation';
+import useCountries from '@/app/hooks/useCountries';
+import { useMemo } from 'react';
+import { differenceInCalendarDays } from 'date-fns';
 
 export default function Search() {
+  const params = useSearchParams();
   const searchModal = useSearchModal();
+  const { getByValue } = useCountries();
+
+  const locationValue = params?.get('locationValue');
+  const startDate = params?.get('startDate');
+  const endDate = params?.get('endDate');
+  const guestCount = params?.get('guestCount');
+
+  const locationLabel = useMemo(
+    () => (locationValue ? getByValue(locationValue)?.label : 'Anywhere'),
+    [getByValue, locationValue]
+  );
+
+  const durationLabel = useMemo(() => {
+    if (startDate && endDate) {
+      const start = new Date(startDate);
+      const end = new Date(endDate);
+      let diff = differenceInCalendarDays(end, start);
+
+      if (diff === 0) {
+        diff = 1;
+      }
+
+      return `${diff} Days`;
+    }
+    return 'Any Week';
+  }, [endDate, startDate]);
+
+  const guestLabel = useMemo(() => {
+    if (guestCount) {
+      return `${guestCount} Guests`;
+    }
+    return 'Add Guests';
+  }, [guestCount]);
 
   return (
     <div
@@ -23,9 +61,9 @@ export default function Search() {
       "
     >
       <div className="flex flex-row items-center justify-between">
-        <div className="text-sm font-semibold px-6">Anywhere</div>
+        <div className="text-sm font-semibold px-6">{locationLabel}</div>
         <div className="hidden sm:block text-sm font-semibold px-6 border-x-[1px] flex-1 text-center">
-          Anyweek
+          {durationLabel}
         </div>
         <div
           className="
@@ -39,7 +77,7 @@ export default function Search() {
             gap-3
           "
         >
-          <div className="hidden sm:block">Add Guests</div>
+          <div className="hidden sm:block">{guestLabel}</div>
           <div className="p-2 bg-rose-500 rounded-full text-white">
             <BiSearch size={18} />
           </div>
